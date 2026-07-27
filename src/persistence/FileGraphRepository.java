@@ -16,5 +16,4 @@ public class FileGraphRepository implements GraphRepository {
     public Graph<MapPoint> cargar(String rutaArchivo) throws IOException {
         return null;
     }
-
 }
