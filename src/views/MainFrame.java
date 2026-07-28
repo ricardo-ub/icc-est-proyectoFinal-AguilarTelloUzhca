@@ -90,7 +90,7 @@ public class MainFrame extends JFrame {
 
         mapPanel = new MapPanel();
         mapPanel.setGrafo(controller.getGraph());
-        mapPanel.cargarImagenFondo("src/resources/maps/mapa.png");
+        mapPanel.cargarImagenFondo("resources/maps/MAPA.png");
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
