@@ -1,5 +1,6 @@
 package structures.graphs;
 
-public class PathFinder {
-    
+public interface PathFinder<T> {
+
+    PathResult<T> find(Graph<T> graph, T start, T end);
 }
