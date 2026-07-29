@@ -911,10 +911,14 @@ private void agregarLog(String mensaje) {
 
 ## Conclusión
 
-El proyecto permitió aplicar los grafos en una situación visual, utilizando puntos de un mapa y conexiones entre ellos.
+Conclucion integrante 1: El comportamiento de BFS y DFS depende directamente de las decisiones tomadas en el grafo. Cambiar HashMap y HashSet por LinkedHashMap y LinkedHashSet en Graph<T> fue lo que permitió que ambos algoritmos recorrieran los vecinos de cada nodo siempre en el mismo orden en que fueron agregados; sin ese cambio, el orden de exploración habría sido distinto en cada ejecución.
 
-La parte desarrollada por la Persona 2 permitió integrar los algoritmos BFS y DFS con el resto de la aplicación. Se corrigió la búsqueda en anchura para reconstruir correctamente la ruta y se utilizó recursividad con retroceso para mantener la ruta de DFS.
+También se comprobó que la persistencia debe reconstruir el grafo con exactamente las mismas conexiones y el mismo orden con que fue guardado. En las pruebas, al guardar y volver a cargar la misma configuración, BFS y DFS encontraron las mismas rutas y visitaron los mismos nodos que antes de guardar, lo que confirmó que el grafo se reconstruye de forma correcta.
 
-También se implementó `PathResult` para separar los nodos visitados de la ruta final y guardar información adicional como el tiempo de ejecución, la cantidad de visitados y la cantidad de aristas.
+Conclucion integrante 2: Implementar BFS y DFS sobre el mismo grafo permitió comprobar en la práctica las diferencias reales entre ambos algoritmos. BFS siempre encontró la ruta con menor cantidad de conexiones, porque explora primero los nodos más cercanos al inicio, mientras que DFS avanzó por una rama completa antes de retroceder, lo que en varios casos generó una ruta más larga aunque igualmente válida.
 
-Finalmente, `MapController` permitió conectar los algoritmos con la interfaz sin que la vista tuviera que modificar directamente el grafo. Esto facilitó la organización del código y permitió que cada parte del programa mantuviera una responsabilidad específica.
+Corregir la reconstrucción de la ruta en BFS, usando el mapa de predecesores, y aplicar el retroceso en DFS (eliminando un nodo de path cuando una rama no llega al destino, pero manteniéndolo en visitados) ayudó a entender por qué cada algoritmo necesita una estrategia distinta para reconstruir su camino final.
+
+Conclucion integrante 3: Ver BFS y DFS funcionando en la interfaz ayudó a entender mejor la diferencia real entre ambos algoritmos. En el modo exploración, BFS revela los nodos "en anillos" alrededor del inicio, marcando primero todos los vecinos directos, mientras que DFS avanza en una sola línea hacia adelante y solo retrocede cuando una rama ya no tiene más vecinos por visitar.
+
+En el modo ruta final se confirmó lo mismo que muestran los resultados: para los mismos nodos, BFS entregó consistentemente la ruta con menos conexiones, mientras que DFS en varios casos encontró una ruta más larga. Que PathResult conservara el orden real de visita fue lo que permitió mostrar esta diferencia de forma visual y no solo como un dato en la barra de estado.
