@@ -24,6 +24,11 @@ import structures.graphs.PathResult;
 
 public class MapPanel extends JPanel {
 
+    // Tamaño de referencia sobre el que se ubican los nodos (coordenadas "de
+    // diseño")
+    private static int ANCHO_DISENO = 700;
+    private static int ALTO_DISENO = 500;
+
     private static Color COLOR_FONDO = new Color(24, 26, 30);
     private static Color COLOR_ARISTA = new Color(120, 126, 138);
     private static Color COLOR_NODO = new Color(235, 236, 240);
@@ -77,6 +82,32 @@ public class MapPanel extends JPanel {
             imagenFondo = null;
         }
         repaint();
+    }
+
+    // ---------- Conversión entre coordenadas de diseño y coordenadas de pantalla
+    // ----------
+
+    private double getEscalaX() {
+        return Math.max(1, getWidth()) / (double) ANCHO_DISENO;
+    }
+
+    private double getEscalaY() {
+        return Math.max(1, getHeight()) / (double) ALTO_DISENO;
+    }
+
+    private int[] aPantalla(MapPoint punto) {
+        int x = (int) (punto.getX() * getEscalaX());
+        int y = (int) (punto.getY() * getEscalaY());
+        return new int[] { x, y };
+    }
+
+    // Usado por MainFrame para convertir un click del mouse a coordenadas de
+    // diseño,
+    // antes de crear un nuevo MapPoint.
+    public int[] convertirClickACoordenadas(int xPantalla, int yPantalla) {
+        int xDiseno = (int) (xPantalla / getEscalaX());
+        int yDiseno = (int) (yPantalla / getEscalaY());
+        return new int[] { xDiseno, yDiseno };
     }
 
     public void mostrarResultado(PathResult<MapPoint> resultado, MapPoint inicio, MapPoint destino,
@@ -199,22 +230,25 @@ public class MapPanel extends JPanel {
 
         for (Map.Entry<MapPoint, Set<MapPoint>> entry : mapa.entrySet()) {
             MapPoint origen = entry.getKey();
+            int[] pOrigen = aPantalla(origen);
+
             for (MapPoint destino : entry.getValue()) {
                 boolean bidireccional = mapa.containsKey(destino) && mapa.get(destino).contains(origen);
+                int[] pDestino = aPantalla(destino);
 
                 g2.setColor(COLOR_ARISTA);
-                g2.drawLine(origen.getX(), origen.getY(), destino.getX(), destino.getY());
+                g2.drawLine(pOrigen[0], pOrigen[1], pDestino[0], pDestino[1]);
 
                 if (!bidireccional) {
-                    dibujarFlecha(g2, origen, destino);
+                    dibujarFlecha(g2, pOrigen, pDestino);
                 }
             }
         }
     }
 
-    private void dibujarFlecha(Graphics2D g2, MapPoint origen, MapPoint destino) {
-        double dx = destino.getX() - origen.getX();
-        double dy = destino.getY() - origen.getY();
+    private void dibujarFlecha(Graphics2D g2, int[] origen, int[] destino) {
+        double dx = destino[0] - origen[0];
+        double dy = destino[1] - origen[1];
         double distancia = Math.sqrt(dx * dx + dy * dy);
         if (distancia == 0) {
             return;
@@ -222,8 +256,8 @@ public class MapPanel extends JPanel {
 
         double ux = dx / distancia;
         double uy = dy / distancia;
-        int puntaX = destino.getX() - (int) (ux * 14);
-        int puntaY = destino.getY() - (int) (uy * 14);
+        int puntaX = destino[0] - (int) (ux * 14);
+        int puntaY = destino[1] - (int) (uy * 14);
 
         double angulo = Math.atan2(dy, dx);
         int tam = 7;
@@ -251,17 +285,17 @@ public class MapPanel extends JPanel {
         double fraccion = progreso - segmentoActual;
 
         for (int i = 0; i < segmentoActual && i < path.size() - 1; i++) {
-            MapPoint a = path.get(i);
-            MapPoint b = path.get(i + 1);
-            g2.drawLine(a.getX(), a.getY(), b.getX(), b.getY());
+            int[] a = aPantalla(path.get(i));
+            int[] b = aPantalla(path.get(i + 1));
+            g2.drawLine(a[0], a[1], b[0], b[1]);
         }
 
         if (segmentoActual < path.size() - 1 && fraccion > 0) {
-            MapPoint a = path.get(segmentoActual);
-            MapPoint b = path.get(segmentoActual + 1);
-            int xIntermedio = a.getX() + (int) ((b.getX() - a.getX()) * fraccion);
-            int yIntermedio = a.getY() + (int) ((b.getY() - a.getY()) * fraccion);
-            g2.drawLine(a.getX(), a.getY(), xIntermedio, yIntermedio);
+            int[] a = aPantalla(path.get(segmentoActual));
+            int[] b = aPantalla(path.get(segmentoActual + 1));
+            int xIntermedio = a[0] + (int) ((b[0] - a[0]) * fraccion);
+            int yIntermedio = a[1] + (int) ((b[1] - a[1]) * fraccion);
+            g2.drawLine(a[0], a[1], xIntermedio, yIntermedio);
         }
     }
 
@@ -293,8 +327,9 @@ public class MapPanel extends JPanel {
                 grosor = 3f;
             }
 
-            int x = punto.getX() - radio / 2;
-            int y = punto.getY() - radio / 2;
+            int[] p = aPantalla(punto);
+            int x = p[0] - radio / 2;
+            int y = p[1] - radio / 2;
 
             g2.setColor(new Color(0, 0, 0, 60));
             g2.fillOval(x - 1, y + 2, radio + 2, radio + 2);
@@ -306,8 +341,8 @@ public class MapPanel extends JPanel {
             g2.drawOval(x, y, radio, radio);
 
             String texto = punto.getId();
-            int tx = punto.getX() + radio;
-            int ty = punto.getY() + 4;
+            int tx = p[0] + radio;
+            int ty = p[1] + 4;
             g2.setColor(COLOR_TEXTO_SOMBRA);
             g2.drawString(texto, tx + 1, ty + 1);
             g2.setColor(COLOR_TEXTO);

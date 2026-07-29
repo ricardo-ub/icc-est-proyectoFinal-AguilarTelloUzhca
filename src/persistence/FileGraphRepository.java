@@ -51,45 +51,78 @@ public class FileGraphRepository implements GraphRepository {
         BufferedReader reader = new BufferedReader(new FileReader(rutaArchivo));
         String linea;
         String seccion = "";
+        int numeroLinea = 0;
 
-        while ((linea = reader.readLine()) != null) {
-            linea = linea.trim();
+        try {
+            while ((linea = reader.readLine()) != null) {
+                numeroLinea++;
+                linea = linea.trim();
 
-            if (linea.isEmpty()) {
-                continue;
-            }
+                if (linea.isEmpty()) {
+                    continue;
+                }
 
-            if (linea.equals("NODOS") || linea.equals("ARISTAS")) {
-                seccion = linea;
-                continue;
-            }
+                if (linea.equals("NODOS") || linea.equals("ARISTAS")) {
+                    seccion = linea;
+                    continue;
+                }
 
-            String[] partes = linea.split(",");
+                String[] partes = linea.split(",");
 
-            if (seccion.equals("NODOS")) {
-                String id = partes[0];
-                int x = Integer.parseInt(partes[1]);
-                int y = Integer.parseInt(partes[2]);
+                if (seccion.equals("NODOS")) {
+                    if (partes.length < 3) {
+                        throw new IOException("Línea " + numeroLinea + " incompleta, se esperaba id,x,y: " + linea);
+                    }
 
-                MapPoint punto = new MapPoint(id, x, y);
-                puntosPorId.put(id, punto);
-                grafo.add(punto);
-            }
+                    String id = partes[0];
 
-            if (seccion.equals("ARISTAS")) {
-                MapPoint desde = puntosPorId.get(partes[0]);
-                MapPoint hasta = puntosPorId.get(partes[1]);
-                boolean bidireccional = Boolean.parseBoolean(partes[2]);
+                    if (puntosPorId.containsKey(id)) {
+                        throw new IOException("Línea " + numeroLinea + " repite el identificador '" + id + "'.");
+                    }
 
-                if (bidireccional) {
-                    grafo.addEdge(desde, hasta);
-                } else {
-                    grafo.addEdgeUni(desde, hasta);
+                    int x;
+                    int y;
+                    try {
+                        x = Integer.parseInt(partes[1]);
+                        y = Integer.parseInt(partes[2]);
+                    } catch (NumberFormatException ex) {
+                        throw new IOException("Línea " + numeroLinea + " tiene coordenadas inválidas: " + linea);
+                    }
+
+                    MapPoint punto = new MapPoint(id, x, y);
+                    puntosPorId.put(id, punto);
+                    grafo.add(punto);
+                }
+
+                if (seccion.equals("ARISTAS")) {
+                    if (partes.length < 3) {
+                        throw new IOException(
+                                "Línea " + numeroLinea + " incompleta, se esperaba desde,hasta,bidireccional: "
+                                        + linea);
+                    }
+
+                    MapPoint desde = puntosPorId.get(partes[0]);
+                    MapPoint hasta = puntosPorId.get(partes[1]);
+
+                    if (desde == null || hasta == null) {
+                        throw new IOException("Línea " + numeroLinea + " referencia un nodo inexistente: " + linea);
+                    }
+
+                    boolean bidireccional = Boolean.parseBoolean(partes[2]);
+
+                    if (bidireccional) {
+                        grafo.addEdge(desde, hasta);
+                    } else {
+                        grafo.addEdgeUni(desde, hasta);
+                    }
                 }
             }
+        } catch (IllegalArgumentException ex) {
+            throw new IOException("Línea " + numeroLinea + " tiene datos inválidos: " + ex.getMessage());
+        } finally {
+            reader.close();
         }
 
-        reader.close();
         return grafo;
     }
 }

@@ -556,6 +556,8 @@ public class MainFrame extends JFrame {
     }
 
     private void crearNodoEnClick(int x, int y) {
+        int[] coordenadas = mapPanel.convertirClickACoordenadas(x, y);
+
         String id = JOptionPane.showInputDialog(this, "Identificador del nuevo nodo:", "Crear nodo",
                 JOptionPane.PLAIN_MESSAGE);
 
@@ -564,7 +566,7 @@ public class MainFrame extends JFrame {
         }
 
         try {
-            MapPoint nuevo = new MapPoint(id, x, y);
+            MapPoint nuevo = new MapPoint(id, coordenadas[0], coordenadas[1]);
             boolean agregado = controller.agregarPunto(nuevo);
 
             if (!agregado) {
@@ -574,7 +576,7 @@ public class MainFrame extends JFrame {
 
             actualizarSelectores();
             mapPanel.repaint();
-            agregarLog("Nodo '" + id + "' creado en (" + x + ", " + y + ").");
+            agregarLog("Nodo '" + id + "' creado en (" + coordenadas[0] + ", " + coordenadas[1] + ").");
             labelEstado.setText("Nodo '" + id + "' creado");
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage());
