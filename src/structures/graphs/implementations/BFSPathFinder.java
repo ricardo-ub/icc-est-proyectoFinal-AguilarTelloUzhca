@@ -25,18 +25,9 @@ public class BFSPathFinder<T> implements PathFinder<T> {
         Set<T> visitados = new LinkedHashSet<>();
         Map<T, T> parent = new LinkedHashMap<>();
 
-        if (graph == null
-                || start == null
-                || end == null
-                || !graph.contains(start)
-                || !graph.contains(end)) {
+        if (graph == null|| start == null|| end == null|| !graph.contains(start)|| !graph.contains(end)) {
 
-            return new PathResult<>(
-                    visitados,
-                    new LinkedHashSet<>(),
-                    System.nanoTime() - inicioTiempo,
-                    false
-            );
+            return new PathResult<>(visitados, new LinkedHashSet<>(),System.nanoTime() - inicioTiempo,false);
         }
 
         queue.add(start);
@@ -48,12 +39,7 @@ public class BFSPathFinder<T> implements PathFinder<T> {
             T current = queue.poll();
 
             if (current.equals(end)) {
-                return new PathResult<>(
-                        visitados,
-                        buildPath(parent, end),
-                        System.nanoTime() - inicioTiempo,
-                        true
-                );
+                return new PathResult<>(visitados,buildPath(parent, end),System.nanoTime() - inicioTiempo,true);
             }
 
             for (T vecino : graph.getVecinos(current)) {
@@ -66,12 +52,7 @@ public class BFSPathFinder<T> implements PathFinder<T> {
             }
         }
 
-        return new PathResult<>(
-                visitados,
-                new LinkedHashSet<>(),
-                System.nanoTime() - inicioTiempo,
-                false
-        );
+        return new PathResult<>(visitados,new LinkedHashSet<>(),System.nanoTime() - inicioTiempo,false);
     }
 
     private Set<T> buildPath(Map<T, T> parent, T end) {
