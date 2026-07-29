@@ -52,9 +52,12 @@
     11.5. Controles agrupados en tarjetas
 
     11.6. Selectores con nombre legible
-    
+
     11.7. Registro de actividad
 12. UML
+
+14. Resultados Obtenidos y Analisis requerido
+
 13. Conclusión
 
 ## Introducción
