@@ -106,7 +106,6 @@ public class Graph<T> {
         }
     }
 
-    // Copia inmutable: ya no se puede modificar el grafo desde afuera
     public Set<T> getVecinos(T current) {
         Node<T> nodo = new Node<>(current);
         Set<Node<T>> internos = nodes.getOrDefault(nodo, new LinkedHashSet<>());
@@ -114,7 +113,7 @@ public class Graph<T> {
         for (Node<T> n : internos) {
             vecinos.add(n.getValue());
         }
-        return Collections.unmodifiableSet(vecinos);
+        return vecinos;
     }
 
     public List<T> getNodes() {
@@ -122,7 +121,7 @@ public class Graph<T> {
         for (Node<T> nodo : nodes.keySet()) {
             lista.add(nodo.getValue());
         }
-        return Collections.unmodifiableList(lista);
+        return lista;
     }
 
     public Map<T, Set<T>> getGraph() {
@@ -130,9 +129,9 @@ public class Graph<T> {
         for (Map.Entry<Node<T>, Set<Node<T>>> entry : nodes.entrySet()) {
             Set<T> vecinos = new LinkedHashSet<>();
             for (Node<T> n : entry.getValue()) vecinos.add(n.getValue());
-            copia.put(entry.getKey().getValue(), Collections.unmodifiableSet(vecinos));
+            copia.put(entry.getKey().getValue(), vecinos);
         }
-        return Collections.unmodifiableMap(copia);
+        return copia;
     }
 
     public void clear() {
