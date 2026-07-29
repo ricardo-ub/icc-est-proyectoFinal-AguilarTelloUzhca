@@ -37,17 +37,17 @@ import structures.graphs.PathResult;
 
 public class MainFrame extends JFrame {
 
-    private static final String RUTA_CONFIGURACION = "src/resources/configuration/graph.txt";
+    private static String RUTA_CONFIGURACION = "src/resources/configuration/graph.txt";
 
-    private static final Color COLOR_FONDO_APP = new Color(20, 21, 24);
-    private static final Color COLOR_BARRA = new Color(28, 30, 34);
-    private static final Color COLOR_TARJETA = new Color(33, 35, 40);
-    private static final Color COLOR_BORDE = new Color(52, 55, 61);
-    private static final Color COLOR_TEXTO_TITULO = new Color(235, 236, 240);
-    private static final Color COLOR_TEXTO_SECUNDARIO = new Color(150, 155, 163);
-    private static final Color COLOR_ACENTO = new Color(96, 165, 250);
-    private static final Color COLOR_BOTON_SECUNDARIO = new Color(45, 48, 54);
-    private static final Color COLOR_PELIGRO = new Color(220, 90, 90);
+    private static Color COLOR_FONDO_APP = new Color(20, 21, 24);
+    private static Color COLOR_BARRA = new Color(28, 30, 34);
+    private static Color COLOR_TARJETA = new Color(33, 35, 40);
+    private static Color COLOR_BORDE = new Color(52, 55, 61);
+    private static Color COLOR_TEXTO_TITULO = new Color(235, 236, 240);
+    private static Color COLOR_TEXTO_SECUNDARIO = new Color(150, 155, 163);
+    private static Color COLOR_ACENTO = new Color(96, 165, 250);
+    private static Color COLOR_BOTON_SECUNDARIO = new Color(45, 48, 54);
+    private static Color COLOR_PELIGRO = new Color(220, 90, 90);
 
     private MapController controller;
     private MapPanel mapPanel;

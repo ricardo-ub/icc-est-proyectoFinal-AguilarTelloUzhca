@@ -24,24 +24,24 @@ import structures.graphs.PathResult;
 
 public class MapPanel extends JPanel {
 
-    private static final Color COLOR_FONDO = new Color(24, 26, 30);
-    private static final Color COLOR_ARISTA = new Color(120, 126, 138);
-    private static final Color COLOR_NODO = new Color(235, 236, 240);
-    private static final Color COLOR_NODO_BORDE = new Color(90, 96, 106);
-    private static final Color COLOR_ACENTO = new Color(96, 165, 250);
-    private static final Color COLOR_VISITADO = new Color(51, 84, 138);
-    private static final Color COLOR_INICIO = new Color(74, 222, 128);
-    private static final Color COLOR_DESTINO = new Color(248, 113, 113);
-    private static final Color COLOR_TEXTO = new Color(240, 241, 244);
-    private static final Color COLOR_TEXTO_SOMBRA = new Color(0, 0, 0, 170);
+    private static Color COLOR_FONDO = new Color(24, 26, 30);
+    private static Color COLOR_ARISTA = new Color(120, 126, 138);
+    private static Color COLOR_NODO = new Color(235, 236, 240);
+    private static Color COLOR_NODO_BORDE = new Color(90, 96, 106);
+    private static Color COLOR_ACENTO = new Color(96, 165, 250);
+    private static Color COLOR_VISITADO = new Color(51, 84, 138);
+    private static Color COLOR_INICIO = new Color(74, 222, 128);
+    private static Color COLOR_DESTINO = new Color(248, 113, 113);
+    private static Color COLOR_TEXTO = new Color(240, 241, 244);
+    private static Color COLOR_TEXTO_SOMBRA = new Color(0, 0, 0, 170);
 
     // Velocidad con la que se pinta la ruta encontrada
-    private static final double INCREMENTO_POR_TICK = 0.045;
-    private static final int INTERVALO_TIMER_MS = 30;
+    private static double INCREMENTO_POR_TICK = 0.045;
+    private static int INTERVALO_TIMER_MS = 30;
 
     // Velocidad con la que se revelan los nodos visitados (modo exploración)
-    private static final double INCREMENTO_VISITADOS_POR_TICK = 0.5;
-    private static final int INTERVALO_VISITADOS_MS = 110;
+    private static double INCREMENTO_VISITADOS_POR_TICK = 0.5;
+    private static int INTERVALO_VISITADOS_MS = 110;
 
     private Graph<MapPoint> grafo;
     private Image imagenFondo;
