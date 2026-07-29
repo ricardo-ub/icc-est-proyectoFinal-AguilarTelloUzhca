@@ -1,11 +1,9 @@
 package structures.graphs.implementations;
 
-import java.util.ArrayList;
-import java.util.Collections;
+
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -25,9 +23,9 @@ public class BFSPathFinder<T> implements PathFinder<T> {
         Set<T> visitados = new LinkedHashSet<>();
         Map<T, T> parent = new LinkedHashMap<>();
 
-        if (graph == null|| start == null|| end == null|| !graph.contains(start)|| !graph.contains(end)) {
+        if (graph == null || start == null || end == null || !graph.contains(start) || !graph.contains(end)) {
 
-            return new PathResult<>(visitados, new LinkedHashSet<>(),System.nanoTime() - inicioTiempo,false);
+            return new PathResult<>(visitados, new LinkedHashSet<>(), System.nanoTime() - inicioTiempo, false);
         }
 
         queue.add(start);
@@ -39,7 +37,7 @@ public class BFSPathFinder<T> implements PathFinder<T> {
             T current = queue.poll();
 
             if (current.equals(end)) {
-                return new PathResult<>(visitados,buildPath(parent, end),System.nanoTime() - inicioTiempo,true);
+                return new PathResult<>(visitados, buildPath(parent, end), System.nanoTime() - inicioTiempo, true);
             }
 
             for (T vecino : graph.getVecinos(current)) {
@@ -52,19 +50,17 @@ public class BFSPathFinder<T> implements PathFinder<T> {
             }
         }
 
-        return new PathResult<>(visitados,new LinkedHashSet<>(),System.nanoTime() - inicioTiempo,false);
+        return new PathResult<>(visitados, new LinkedHashSet<>(), System.nanoTime() - inicioTiempo, false);
     }
 
     private Set<T> buildPath(Map<T, T> parent, T end) {
 
-        List<T> pathInvertido = new ArrayList<>();
+        LinkedList<T> path = new LinkedList<>();
 
         for (T at = end; at != null; at = parent.get(at)) {
-            pathInvertido.add(at);
+            path.addFirst(at);
         }
 
-        Collections.reverse(pathInvertido);
-
-        return new LinkedHashSet<>(pathInvertido);
+        return new LinkedHashSet<>(path);
     }
 }
