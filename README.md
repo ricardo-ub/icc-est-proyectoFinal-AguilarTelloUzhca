@@ -1,14 +1,15 @@
 ![alt text](image-2.png)
 
-# Proyecto final de Estructura de Datos
-
-## Aplicación de los algoritmos BFS y DFS en un mapa
+**[UNIVERSIDAD POLITECNICA SALESIANA]**
+**[ESTRUCTURA DE DATOS]**
 
 ### Integrantes
 
-- Nicolas Aguilar
-- Carlos Tello
-- Ricardo Uzhca
+| Nombre | Correo institucional |
+|---|---|
+| Nicolas Aguilar | [gaguilaru@est.ups.edu.ec] |
+| Carlos Tello | [ctellob@est.ups.edu.ec] |
+| Ricardo Uzhca | [ruzhcab@est.ups.edu.ec] |
 
 ## Indice:
 
@@ -17,48 +18,51 @@
 3. Introducción
 4. Objetivo general
 5. Objetivos específicos
-6. Descripción general del programa
-7. Clase MapPoint
-8. Clase Graph
-9. Persistencia: GraphRepository y FileGraphRepository
-10. Parte de BFS, DFS, Controller, VisualizationMode y Recorrido final
+6. Tecnologías utilizadas
+7. Arquitectura y estructura de carpetas
+8. Descripción del problema
+9. Descripción general del programa
+10. Clase MapPoint
+11. Clase Graph
+12. Persistencia: GraphRepository y FileGraphRepository
+13. Parte de BFS, DFS, Controller, VisualizationMode y Recorrido final
 
-    10.1. Interfaz PathFinder
+    13.1. Interfaz PathFinder
 
-    10.2. Clase PathResult
+    13.2. Clase PathResult
 
-    10.3. Implementación de BFS
+    13.3. Implementación de BFS
 
-    10.4. Reconstrucción de la ruta en BFS
+    13.4. Reconstrucción de la ruta en BFS
 
-    10.5. Implementación de DFS
+    13.5. Implementación de DFS
 
-    10.6. Diferencia entre BFS y DFS
+    13.6. Diferencia entre BFS y DFS
 
-    10.7. MapController
+    13.7. MapController
 
-    10.8. VisualizationMode
+    13.8. VisualizationMode
 
-11. Parte de interfaz gráfica, visualización y edición del mapa
+14. Parte de interfaz gráfica, visualización y edición del mapa
     
-    11.1. Clase MapPanel
+    14.1. Clase MapPanel
 
-    11.2. Dibujo de nodos y conexiones
+    14.2. Dibujo de nodos y conexiones
 
-    11.3. Animación de la exploración y de la ruta
+    14.3. Animación de la exploración y de la ruta
 
-    11.4. Clase MainFrame
+    14.4. Clase MainFrame
 
-    11.5. Controles agrupados en tarjetas
+    14.5. Controles agrupados en tarjetas
 
-    11.6. Selectores con nombre legible
+    14.6. Selectores con nombre legible
 
-    11.7. Registro de actividad
-12. UML
-
-14. Resultados Obtenidos y Analisis requerido
-
-13. Conclusión
+    14.7. Registro de actividad
+15. UML
+16. Capturas de configuraciones del mapa
+17. Resultados obtenidos y análisis
+18. Conclusión
+19. Recomendaciones y aplicaciones futuras
 
 ## Introducción
 
@@ -69,6 +73,12 @@ El usuario puede seleccionar un punto de inicio y un punto de destino y ejecutar
 También se pueden agregar o eliminar puntos, crear conexiones unidireccionales o bidireccionales y guardar la configuración del mapa en un archivo de texto.
 
 Para desarrollar el proyecto se aplicaron temas vistos durante el ciclo, como grafos, clases genéricas, colas, conjuntos, mapas, recursividad, lectura de archivos, programación orientada a objetos e interfaces gráficas con Swing.
+
+## Descripción del problema
+
+Encontrar el camino entre dos ubicaciones dentro de un mapa es un problema común en aplicaciones de navegación, logística y videojuegos. El reto no es solo encontrar *una* ruta válida, sino poder comparar distintas estrategias de búsqueda (en este caso, en anchura y en profundidad) sobre la misma estructura de datos, y poder visualizar cómo cada una explora el grafo de forma distinta antes de llegar al destino.
+
+Este proyecto resuelve ese problema modelando el mapa como un grafo genérico (`Graph<MapPoint>`), donde cada punto de interés es un nodo y cada calle o conexión entre dos puntos es una arista, que puede ser de un solo sentido o de doble sentido. Sobre esa estructura se implementan BFS y DFS, y se muestra en una interfaz gráfica tanto el proceso de exploración como el resultado final.
 
 ## Objetivo general
 
@@ -84,6 +94,50 @@ Desarrollar una aplicación en Java que permita representar un mapa mediante un 
 - Medir el tiempo de ejecución de cada algoritmo.
 - Guardar y cargar la información del grafo.
 - Mostrar los resultados en una interfaz gráfica.
+
+## Tecnologías utilizadas
+
+- **Lenguaje:** Java (JDK 21).
+- **Interfaz gráfica:** Swing (`JFrame`, `JPanel`, `Graphics2D`, `javax.swing.Timer` para las animaciones).
+- **Estructuras de datos propias:** `Graph<T>`, `Node<T>`, `LinkedHashMap`, `LinkedHashSet` (para conservar el orden de inserción y de recorrido).
+- **Persistencia:** lectura y escritura de archivos de texto plano (`BufferedReader`/`BufferedWriter`), sin librerías externas ni bases de datos.
+- **Control de versiones:** Git y GitHub, con ramas individuales por integrante (`feature/model-persistence`, `feature/algorithms-controller`, `feature/gui-visualization`) integradas en `develop` y luego en `main`.
+- **Entorno de desarrollo:** Visual Studio Code con el extension pack de Java.
+
+## Arquitectura y estructura de carpetas
+
+El proyecto sigue una arquitectura MVC (Modelo - Vista - Controlador), separando responsabilidades en paquetes:
+
+```text
+src/
+├── App.java                          # Punto de entrada
+├── models/
+│   ├── MapPoint.java                 # Modelo: un punto del mapa
+│   └── VisualizationMode.java        # Modelo: modo de visualización
+├── structures/
+│   ├── node/
+│   │   └── Node.java                 # Nodo interno del grafo
+│   └── graphs/
+│       ├── Graph.java                # Estructura de grafo genérica
+│       ├── PathFinder.java           # Interfaz común para BFS y DFS
+│       ├── PathResult.java           # Resultado de una búsqueda
+│       └── implementations/
+│           ├── BFSPathFinder.java
+│           └── DFSPathFinder.java
+├── persistence/
+│   ├── GraphRepository.java          # Contrato de guardado/carga
+│   └── FileGraphRepository.java      # Implementación en texto plano
+├── controllers/
+│   └── MapController.java            # Conecta vista, grafo y algoritmos
+├── views/
+│   ├── MainFrame.java                # Ventana principal
+│   └── MapPanel.java                 # Dibujo del mapa, nodos y animaciones
+└── resources/
+    ├── maps/                         # Imagen de fondo (captura de Google Maps)
+    └── configuration/                # Archivo de configuración del grafo
+```
+
+Esta separación permite que, por ejemplo, `BFSPathFinder` y `DFSPathFinder` no sepan nada de Swing, y que `MapPanel` no sepa nada de cómo se recorre el grafo: solo recibe un `PathResult` ya calculado y lo dibuja.
 
 ## Descripción general del programa
 
@@ -250,7 +304,7 @@ MapPoint hasta = puntosPorId.get(partes[1]);
 
 ## Parte de BFS, DFS, Controller, VisualizationMode y Recorrido final
 
-La Persona 2 estuvo encargada principalmente del funcionamiento de los recorridos BFS y DFS, de la información generada por cada búsqueda y del controlador utilizado para conectar los algoritmos con la interfaz.
+En esta parte esta encargada principalmente del funcionamiento de los recorridos BFS y DFS, de la información generada por cada búsqueda y del controlador utilizado para conectar los algoritmos con la interfaz.
 
 Los archivos trabajados fueron:
 
@@ -963,6 +1017,50 @@ private void agregarLog(String mensaje) {
 
 ![alt text](image.png)
 
+El diagrama muestra la separación por capas del proyecto: `MapPoint` y `VisualizationMode` como modelo, `Graph`/`Node`/`PathFinder`/`PathResult`/`BFSPathFinder`/`DFSPathFinder` como las estructuras de datos y algoritmos, `GraphRepository`/`FileGraphRepository` como la capa de persistencia, `MapController` como intermediario entre la vista y el resto del sistema, y `MainFrame`/`MapPanel` como la vista. Las flechas de dependencia van siempre desde las capas externas (vista) hacia las internas (modelo y algoritmos), nunca al revés: ni `Graph`, ni `BFSPathFinder`, ni `DFSPathFinder` conocen la existencia de Swing ni de ninguna clase de `views`.
+
+## Capturas de configuraciones del mapa
+
+A continuación se muestran dos configuraciones distintas del mapa, cada una con su propio conjunto de nodos y conexiones, para demostrar que la aplicación funciona con distintos grafos y no con datos fijos.
+
+**Configuración 1:**
+
+![Configuración de mapa 1](captura-mapa-1.png)
+
+**Configuración 2:**
+
+![Configuración de mapa 2](captura-mapa-2.png)
+
+## Resultados obtenidos y análisis
+
+Se debe registrar información obtenida mediante ejecuciones reales. Los tiempos, rutas, observaciones y evidencias no deben ser inventados.
+
+### Tabla 1. Comparación de BFS y DFS
+
+| Caso | Algoritmo | Inicio | Destino | Nodos visitados | Cantidad de aristas | Tiempo |
+|---|---|---|---|---|---|---|
+| 1 | BFS | A | B | 3 (A→B→D) | 1 | 1.09 ms |
+| 1 | DFS | A | B | 2 (A→B) | 1 | 0.04 ms |
+| 2 | BFS | A | G | 7 (A→B→D→C→E→G→F) | 3 | 0.07 ms |
+| 2 | DFS | A | G | 7 (A→B→C→E→D→F→G) | 5 | 0.05 ms |
+| 3 | BFS | A | H | 7 (sin llegar a H) | 0 (sin ruta) | 0.05 ms |
+| 3 | DFS | A | H | 7 (sin llegar a H) | 0 (sin ruta) | 0.07 ms |
+
+### Rutas encontradas
+
+- **Caso 1 (A → B):** `A → B`. Ruta directa, ambos algoritmos coinciden.
+- **Caso 2 BFS (A → G):** `A → B → C → G`. BFS encontró la ruta con menor cantidad de conexiones (3 aristas), porque explora primero los nodos más cercanos al origen.
+- **Caso 2 DFS (A → G):** `A → B → C → E → F → G`. DFS encontró una ruta válida pero más larga (5 aristas), porque avanza en profundidad por una rama antes de retroceder.
+- **Caso 3 (A → H):** ninguno de los dos algoritmos encontró ruta, porque H no tiene ninguna conexión con el resto del grafo. Ambos exploraron correctamente los 7 nodos alcanzables antes de terminar sin éxito.
+
+### Análisis
+
+Los resultados confirman el comportamiento teórico esperado de cada algoritmo:
+
+- **BFS** garantiza la ruta con menor número de conexiones (el equivalente al camino más corto en un grafo sin pesos), a costa de visitar los nodos "por niveles" alrededor del origen.
+- **DFS** no garantiza la ruta más corta, pero suele llegar al destino visitando la misma cantidad de nodos totales; la diferencia está en el orden y en la longitud de la ruta final, no necesariamente en el tiempo de ejecución.
+- El tiempo de ejecución de ambos algoritmos es del orden de fracciones de milisegundo para grafos pequeños como el de prueba (8 nodos), por lo que la diferencia de rendimiento entre BFS y DFS solo sería perceptible con grafos mucho más grandes.
+- El caso sin ruta (Caso 3) demuestra que ambos algoritmos terminan correctamente sin quedarse en un ciclo infinito ni lanzar excepciones cuando el destino es inalcanzable.
 
 ## Conclusión
 
@@ -977,3 +1075,19 @@ Corregir la reconstrucción de la ruta en BFS, usando el mapa de predecesores, y
 Conclucion integrante 3: Ver BFS y DFS funcionando en la interfaz ayudó a entender mejor la diferencia real entre ambos algoritmos. En el modo exploración, BFS revela los nodos "en anillos" alrededor del inicio, marcando primero todos los vecinos directos, mientras que DFS avanza en una sola línea hacia adelante y solo retrocede cuando una rama ya no tiene más vecinos por visitar.
 
 En el modo ruta final se confirmó lo mismo que muestran los resultados: para los mismos nodos, BFS entregó consistentemente la ruta con menos conexiones, mientras que DFS en varios casos encontró una ruta más larga. Que PathResult conservara el orden real de visita fue lo que permitió mostrar esta diferencia de forma visual y no solo como un dato en la barra de estado.
+
+## Recomendaciones y aplicaciones futuras
+
+**Recomendaciones para continuar el proyecto:**
+
+- Corregir la unidad de tiempo reportada en `PathResult`: actualmente `System.nanoTime()` se guarda sin convertir a milisegundos, por lo que el valor mostrado en la interfaz debería dividirse entre `1_000_000` antes de mostrarse como "ms".
+- Agregar una opción para exportar la configuración del grafo en formato JSON, además del texto plano actual, para facilitar la integración con otras herramientas.
+- Agregar pruebas unitarias automatizadas (por ejemplo con JUnit) para `Graph`, `BFSPathFinder` y `DFSPathFinder`, en lugar de depender únicamente de pruebas manuales desde consola o desde la interfaz.
+- Permitir editar las coordenadas de un nodo existente sin tener que eliminarlo y volver a crearlo.
+
+**Posibles aplicaciones futuras:**
+
+- Adaptar el proyecto para calcular rutas en un mapa real con pesos en las aristas (distancia, tiempo o tráfico), incorporando algoritmos como Dijkstra o A*, reutilizando la misma interfaz `PathFinder<T>`.
+- Usarlo como base para un sistema de navegación interno de un campus universitario o de un edificio, donde cada `MapPoint` represente una habitación o pasillo.
+- Extender el modelo para representar redes de transporte público, usando aristas dirigidas para representar rutas de buses de un solo sentido.
+- Reutilizar `Graph<T>` como estructura genérica para otros problemas de la materia (por ejemplo, redes sociales o dependencias entre tareas), ya que no depende de `MapPoint` en ningún momento.
