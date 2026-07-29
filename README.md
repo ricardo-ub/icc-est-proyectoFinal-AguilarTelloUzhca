@@ -1,12 +1,14 @@
+![alt text](image-2.png)
+
 # Proyecto final de Estructura de Datos
 
 ## Aplicación de los algoritmos BFS y DFS en un mapa
 
 ### Integrantes
 
-- Aguilar
-- Tello
-- Uzhca
+- Nicolas Aguilar
+- Carlos Tello
+- Ricardo Uzhca
 
 ## Introducción
 
@@ -907,6 +909,9 @@ private void agregarLog(String mensaje) {
 }
 ```
 
+## UML
+
+![alt text](image.png)
 
 
 ## Conclusión
