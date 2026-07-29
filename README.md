@@ -37,31 +37,9 @@ Desarrollar una aplicación en Java que permita representar un mapa mediante un 
 
 La ejecución empieza en la clase `App`. En esta clase se intenta cargar el grafo desde el archivo de configuración.
 
-```java
-GraphRepository repositorio = new FileGraphRepository();
-String rutaConfiguracion = "src/resources/configuration/graph.txt";
-```
+## Clase MapPoint
 
-Si el archivo existe, el programa carga los nodos y las conexiones guardadas. Si el archivo no existe o presenta algún error, se utiliza un grafo de ejemplo.
-
-Después se crea el controlador:
-
-```java
-MapController controller = new MapController(grafo, repositorio);
-```
-
-El controlador recibe el grafo y el repositorio. Su función es comunicar la interfaz con los algoritmos, las operaciones del grafo y el guardado de información.
-
-Finalmente, se crea la ventana principal:
-
-```java
-MainFrame frame = new MainFrame(controller);
-frame.setVisible(true);
-```
-
-Desde la ventana el usuario selecciona el nodo inicial, el nodo final, el algoritmo y el modo de visualización. La información seleccionada se envía al controlador, que ejecuta BFS o DFS y devuelve el resultado a la interfaz.
-
-La clase `MapPoint` representa cada lugar del mapa. Cada punto tiene un identificador y dos coordenadas.
+La clase `MapPoint` representa un lugar del mapa. Guarda un identificador y dos coordenadas.
 
 ```java
 private String id;
@@ -69,9 +47,154 @@ private int x;
 private int y;
 ```
 
-La clase `Graph<T>` almacena los puntos y sus conexiones. Esta clase permite agregar y eliminar nodos, crear conexiones, eliminar conexiones y consultar los vecinos de un punto.
+El constructor valida que el identificador no esté vacío y que las coordenadas no sean negativas.
 
-La persistencia se realiza mediante `FileGraphRepository`, mientras que `MainFrame` y `MapPanel` se encargan de mostrar la interfaz y dibujar los resultados.
+```java
+public MapPoint(String id, int x, int y) {
+    if (id == null || id.isBlank()) {
+        throw new IllegalArgumentException("El id de un MapPoint no puede estar vacío.");
+    }
+    this.id = id;
+    setCoordenadas(x, y);
+}
+```
+
+Si alguno de estos datos es incorrecto, se lanza una excepción en lugar de crear un punto con información inválida.
+
+Los métodos `equals` y `hashCode` se generaron usando únicamente el identificador.
+
+```java
+if (id == null) {
+    if (other.id != null)
+        return false;
+} else if (!id.equals(other.id))
+    return false;
+```
+
+Esto significa que dos `MapPoint` con el mismo id se consideran el mismo punto, sin importar si cambian sus coordenadas. Esta decisión es importante porque `Graph<T>` usa `equals`/`hashCode` para saber si un nodo ya existe.
+
+## Clase Graph
+
+La clase `Graph<T>` almacena los puntos y sus conexiones utilizando un mapa.
+
+```java
+Map<Node<T>, Set<Node<T>>> nodes;
+```
+
+Se utilizó `LinkedHashMap` y `LinkedHashSet` en vez de `HashMap`/`HashSet` porque el proyecto necesita conservar el orden en que se agregan los nodos y las conexiones. Este orden se usa después para representar la exploración de BFS y DFS en la interfaz.
+
+Agregar un nodo devuelve `true` o `false` según si ya existía.
+
+```java
+public boolean add(T value) {
+    Node<T> nodo = new Node<>(value);
+    if (nodes.containsKey(nodo)) {
+        return false;
+    }
+    nodes.put(nodo, new LinkedHashSet<>());
+    return true;
+}
+```
+
+Las conexiones se crean con `addEdge` (bidireccional) y `addEdgeUni` (dirigida). Ninguna de las dos crea nodos automáticamente: si alguno de los dos puntos no existe en el grafo, la operación simplemente devuelve `false`.
+
+```java
+public boolean addEdge(T v1, T v2) {
+    Node<T> nV1 = new Node<>(v1);
+    Node<T> nV2 = new Node<>(v2);
+    if (!nodes.containsKey(nV1) || !nodes.containsKey(nV2)) return false;
+    boolean a = nodes.get(nV1).add(nV2);
+    boolean b = nodes.get(nV2).add(nV1);
+    return a || b;
+}
+```
+
+Para eliminar existen `removeEdge`, `removeEdgeUni` y `removeNode`, que primero comprueban que los nodos existan antes de modificar la estructura.
+
+```java
+public void removeNode(T value) {
+    Node<T> nodo = new Node<>(value);
+    if (nodes.containsKey(nodo)) {
+        nodes.remove(nodo);
+        for (Set<Node<T>> set : nodes.values()) {
+            set.remove(nodo);
+        }
+    }
+}
+```
+
+`removeNode` no solo quita el nodo del mapa, también recorre el resto de conexiones para eliminar las referencias que otros nodos tenían hacia él.
+
+El método `getVecinos` no devuelve la estructura interna del grafo, sino una copia. Esto evita que otra clase modifique el grafo directamente desde afuera.
+
+```java
+public Set<T> getVecinos(T current) {
+    Node<T> nodo = new Node<>(current);
+    Set<Node<T>> internos = nodes.getOrDefault(nodo, new LinkedHashSet<>());
+    Set<T> vecinos = new LinkedHashSet<>();
+    for (Node<T> n : internos) {
+        vecinos.add(n.getValue());
+    }
+    return Collections.unmodifiableSet(vecinos);
+}
+```
+
+También se agregaron `getNodes()`, que entrega la lista de puntos en orden de inserción, y `getGraph()`, que entrega una copia completa del grafo (nodo y sus vecinos). Estos dos métodos los usa la vista para dibujar los puntos y las conexiones sobre el mapa, y `FileGraphRepository` para recorrer el grafo al momento de guardarlo.
+
+Por último, `getDirections()` y `getConnections()` cuentan cuántas conexiones dirigidas y bidireccionales tiene el grafo, recorriendo la estructura real en el momento en que se llaman, en vez de mantener un contador aparte que se pudiera desactualizar.
+
+## Persistencia: GraphRepository y FileGraphRepository
+
+`GraphRepository` es la interfaz que define el contrato de guardado y carga.
+
+```java
+public interface GraphRepository {
+    void guardar(Graph<MapPoint> grafo, String rutaArchivo) throws IOException;
+    Graph<MapPoint> cargar(String rutaArchivo) throws IOException;
+}
+```
+
+`FileGraphRepository` es la implementación que guarda el grafo en un archivo de texto plano, sin usar librerías externas. El archivo se organiza en dos secciones: `NODOS` y `ARISTAS`.
+
+```text
+NODOS
+A,100,120
+B,250,130
+ARISTAS
+A,B,true
+```
+
+Cada nodo se guarda como `id,x,y` y cada conexión como `desde,hasta,esBidireccional`.
+
+```java
+List<MapPoint> nodos = grafo.getNodes();
+for (MapPoint punto : nodos) {
+    writer.write(punto.getId() + "," + punto.getX() + "," + punto.getY());
+    writer.newLine();
+}
+```
+
+Para saber si una conexión es bidireccional, se comprueba si el destino también tiene al origen como vecino.
+
+```java
+boolean bidireccional = grafo.getVecinos(destino).contains(origen);
+```
+
+Al cargar, se lee el archivo línea por línea. Una variable `seccion` indica si las líneas que siguen corresponden a nodos o a aristas.
+
+```java
+if (linea.equals("NODOS") || linea.equals("ARISTAS")) {
+    seccion = linea;
+    continue;
+}
+```
+
+Cada línea se separa con `split(",")` para reconstruir el `MapPoint` o la conexión correspondiente. Los puntos se guardan primero en un mapa temporal (`puntosPorId`) para poder relacionar las aristas con el objeto `MapPoint` correcto antes de agregarlas al grafo.
+
+```java
+MapPoint desde = puntosPorId.get(partes[0]);
+MapPoint hasta = puntosPorId.get(partes[1]);
+```
 
 ## Parte de BFS, DFS, Controller, VisualizationMode y Recorrido final
 
