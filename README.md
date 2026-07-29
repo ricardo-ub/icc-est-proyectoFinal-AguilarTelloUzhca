@@ -10,6 +10,53 @@
 - Carlos Tello
 - Ricardo Uzhca
 
+## Indice:
+
+1. Aplicación de los algoritmos BFS y DFS en un mapa
+2. Integrantes
+3. Introducción
+4. Objetivo general
+5. Objetivos específicos
+6. Descripción general del programa
+7. Clase MapPoint
+8. Clase Graph
+9. Persistencia: GraphRepository y FileGraphRepository
+10. Parte de BFS, DFS, Controller, VisualizationMode y Recorrido final
+
+    10.1. Interfaz PathFinder
+
+    10.2. Clase PathResult
+
+    10.3. Implementación de BFS
+
+    10.4. Reconstrucción de la ruta en BFS
+
+    10.5. Implementación de DFS
+
+    10.6. Diferencia entre BFS y DFS
+
+    10.7. MapController
+
+    10.8. VisualizationMode
+
+11. Parte de interfaz gráfica, visualización y edición del mapa
+    
+    11.1. Clase MapPanel
+
+    11.2. Dibujo de nodos y conexiones
+
+    11.3. Animación de la exploración y de la ruta
+
+    11.4. Clase MainFrame
+
+    11.5. Controles agrupados en tarjetas
+
+    11.6. Selectores con nombre legible
+    
+    11.7. Registro de actividad
+12. UML
+13. Conclusión
+
 ## Introducción
 
 El proyecto consiste en una aplicación desarrollada en Java que representa diferentes lugares de un mapa mediante un grafo. Cada lugar corresponde a un nodo y las conexiones entre lugares se representan mediante aristas.
