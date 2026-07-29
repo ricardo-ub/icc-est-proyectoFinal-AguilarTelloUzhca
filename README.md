@@ -683,6 +683,231 @@ En el modo `FINAL_PATH` se muestra únicamente el camino final desde el inicio h
 Esta clase no ejecuta BFS ni DFS. Su función es informar a la interfaz qué parte del `PathResult` debe representar.
 
 
+## Parte de interfaz gráfica, visualización y edición del mapa
+
+Esta parte estuvo encargada de la interfaz gráfica, es decir, de todo lo que el usuario ve y con lo que interactúa: el mapa, los nodos, las conexiones, los controles y las animaciones.
+
+Los archivos trabajados fueron:
+
+- MainFrame.java
+- MapPanel.java
+
+Esta parte no contiene lógica de grafos ni de algoritmos. La interfaz solamente pide información al `MapController` y dibuja el resultado que este devuelve. Esto respeta el patrón MVC: la vista no ejecuta BFS ni DFS, y `Graph`, `BFSPathFinder` y `DFSPathFinder` no dibujan nada directamente.
+
+## Clase MapPanel
+
+`MapPanel` es un `JPanel` que se encarga únicamente de dibujar: la imagen de fondo, las conexiones, la ruta encontrada y los nodos.
+
+```java
+public class MapPanel extends JPanel {
+    private Graph<MapPoint> grafo;
+    private Image imagenFondo;
+    ...
+}
+```
+
+Todo el dibujo ocurre dentro de `paintComponent`, que es el método que Swing llama automáticamente cada vez que el panel necesita redibujarse.
+
+```java
+@Override
+protected void paintComponent(Graphics g) {
+    super.paintComponent(g);
+    Graphics2D g2 = (Graphics2D) g;
+    ...
+    dibujarAristas(g2);
+    dibujarPath(g2);
+    dibujarNodos(g2);
+}
+```
+
+Se dividió el dibujo en tres métodos separados (`dibujarAristas`, `dibujarPath`, `dibujarNodos`) para que cada uno tenga una sola responsabilidad y sea más fácil de leer.
+
+## Dibujo de nodos y conexiones
+
+Para dibujar las conexiones, `MapPanel` recorre el grafo mediante `getGraph()`, el método de consulta que expone `Graph<T>` sin permitir modificarlo desde afuera.
+
+```java
+Map<MapPoint, Set<MapPoint>> mapa = grafo.getGraph();
+
+for (Map.Entry<MapPoint, Set<MapPoint>> entry : mapa.entrySet()) {
+    MapPoint origen = entry.getKey();
+    for (MapPoint destino : entry.getValue()) {
+        boolean bidireccional = mapa.containsKey(destino) && mapa.get(destino).contains(origen);
+        ...
+    }
+}
+```
+
+Una conexión se considera bidireccional cuando el nodo destino también tiene al origen como vecino. Cuando no es así, se dibuja una pequeña flecha en el extremo final de la línea, para que el usuario pueda distinguir a simple vista una calle de un solo sentido de una calle de doble sentido.
+
+```java
+private void dibujarFlecha(Graphics2D g2, MapPoint origen, MapPoint destino) {
+    double angulo = Math.atan2(dy, dx);
+    ...
+    g2.fillPolygon(xs, ys, 3);
+}
+```
+
+Cada nodo se dibuja como un círculo, usando las coordenadas `x` e `y` guardadas en `MapPoint`. El color del borde cambia según el estado del nodo: verde si es el inicio, rojo si es el destino, y azul si fue visitado durante la búsqueda.
+
+```java
+if (punto.equals(nodoInicio)) {
+    borde = COLOR_INICIO;
+    grosor = 3f;
+}
+if (punto.equals(nodoDestino)) {
+    borde = COLOR_DESTINO;
+    grosor = 3f;
+}
+```
+
+## Animación de la exploración y de la ruta
+
+`MapPanel` recibe el `PathResult` que entrega el `MapController` junto con el `VisualizationMode` elegido por el usuario, y decide cómo animarlo.
+
+```java
+public void mostrarResultado(PathResult<MapPoint> resultado, MapPoint inicio, MapPoint destino,
+        VisualizationMode modo) {
+    ...
+    if (mostrarVisitadosProgresivo && !visitadosOrdenados.isEmpty()) {
+        iniciarAnimacionVisitados();
+    } else {
+        iniciarAnimacionPath();
+    }
+}
+```
+
+Cuando el modo es `EXPLORATION`, primero se van revelando uno por uno los nodos visitados, en el mismo orden en que el algoritmo los recorrió (por eso era importante que `PathResult` usara `LinkedHashSet` y conservara el orden de inserción). Al terminar de revelar todos los visitados, se anima automáticamente la ruta final.
+
+```java
+private void iniciarAnimacionVisitados() {
+    timerVisitados = new Timer(INTERVALO_VISITADOS_MS, ...);
+    timerVisitados.start();
+}
+```
+
+Cuando el modo es `FINAL_PATH`, se omite por completo la animación de los visitados y se dibuja directamente la ruta desde el inicio hasta el destino, sin mostrar los nodos intermedios que el algoritmo tuvo que explorar.
+
+Ambas animaciones usan `javax.swing.Timer` en lugar de `Thread.sleep()`, porque `Thread.sleep()` dentro del hilo de Swing congelaría toda la ventana mientras dura la animación.
+
+```java
+timerPath = new Timer(INTERVALO_TIMER_MS, new java.awt.event.ActionListener() {
+    @Override
+    public void actionPerformed(java.awt.event.ActionEvent e) {
+        progreso += INCREMENTO_POR_TICK;
+        ...
+        repaint();
+    }
+});
+```
+
+## Clase MainFrame
+
+`MainFrame` es la ventana principal. Se encarga de organizar los controles y de comunicarlos con el `MapController`; no contiene lógica de dibujo, eso lo delega completamente a `MapPanel`.
+
+La ventana se dividió en cuatro zonas usando `BorderLayout`:
+
+```java
+add(crearBarraSuperior(), BorderLayout.NORTH);
+add(mapPanel, BorderLayout.CENTER);
+add(crearBarraLateral(), BorderLayout.EAST);
+add(crearPanelLog(), BorderLayout.SOUTH);
+```
+
+- **Barra superior:** título de la aplicación y un resumen rápido del último resultado (algoritmo usado, nodos visitados, cantidad de aristas y tiempo de ejecución).
+- **Mapa:** el `MapPanel`, en el centro.
+- **Barra lateral:** los controles, agrupados en tarjetas.
+- **Panel inferior:** un registro de actividad.
+
+## Controles agrupados en tarjetas
+
+Para no amontonar todos los controles en una sola fila, se agruparon en cuatro tarjetas independientes, cada una con una responsabilidad clara: **Ruta**, **Nodos**, **Conexiones** y **Configuración**.
+
+La tarjeta de **Ruta** permite elegir el nodo de inicio, el nodo de destino, el algoritmo (BFS o DFS) y el modo de visualización (Exploración o Ruta final):
+
+```java
+String algoritmo = radioBFS.isSelected() ? "BFS" : "DFS";
+VisualizationMode modo = radioExploracion.isSelected()
+        ? VisualizationMode.EXPLORATION
+        : VisualizationMode.FINAL_PATH;
+
+PathResult<MapPoint> resultado = controller.ejecutar(algoritmo, inicio, destino);
+```
+
+La tarjeta de **Nodos** permite crear un nodo nuevo directamente sobre la imagen del mapa. Al activar el botón "Crear nodo", el siguiente click sobre el mapa abre un cuadro de diálogo pidiendo el identificador, y con esa información se construye un nuevo `MapPoint` en las coordenadas exactas donde se hizo click.
+
+```java
+mapPanel.addMouseListener(new MouseAdapter() {
+    @Override
+    public void mousePressed(MouseEvent e) {
+        if (modoCrearNodo) {
+            crearNodoEnClick(e.getX(), e.getY());
+        }
+    }
+});
+```
+
+```java
+private void crearNodoEnClick(int x, int y) {
+    String id = JOptionPane.showInputDialog(this, "Identificador del nuevo nodo:", "Crear nodo", ...);
+    ...
+    MapPoint nuevo = new MapPoint(id, x, y);
+    boolean agregado = controller.agregarPunto(nuevo);
+    ...
+}
+```
+
+Esta misma tarjeta permite eliminar un nodo existente, seleccionándolo desde una lista desplegable.
+
+La tarjeta de **Conexiones** permite crear una conexión entre dos nodos, eligiendo si es unidireccional o bidireccional mediante dos botones de opción, y también eliminarla:
+
+```java
+boolean bidireccional = radioBi.isSelected();
+boolean agregada = controller.agregarConexion(origen, destino, bidireccional);
+```
+
+La tarjeta de **Configuración** permite guardar el estado actual del grafo en el archivo de configuración y volver a cargarlo, delegando directamente en el `MapController`:
+
+```java
+controller.guardar(RUTA_CONFIGURACION);
+...
+controller.cargar(RUTA_CONFIGURACION);
+mapPanel.setGrafo(controller.getGraph());
+```
+
+Después de cargar, es necesario volver a pasarle el grafo a `MapPanel` con `setGrafo`, porque el controlador reemplaza internamente su referencia al grafo, y sin ese paso la vista seguiría mostrando el grafo anterior.
+
+## Selectores con nombre legible
+
+Los `JComboBox` que muestran nodos no usan el `toString()` por defecto de `MapPoint`, porque ese método está pensado para depuración y no para mostrarse al usuario. En su lugar, se configuró un `renderer` propio para cada combo, que muestra solamente el identificador y las coordenadas:
+
+```java
+combo.setRenderer(new DefaultListCellRenderer() {
+    @Override
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+            boolean isSelected, boolean cellHasFocus) {
+        JLabel label = (JLabel) super.getListCellRendererComponent(...);
+        if (value instanceof MapPoint) {
+            MapPoint punto = (MapPoint) value;
+            label.setText(punto.getId() + "   (" + punto.getX() + ", " + punto.getY() + ")");
+        }
+        return label;
+    }
+});
+```
+
+## Registro de actividad
+
+Como último elemento se agregó un panel de registro en la parte inferior de la ventana, con un `JTextArea` de solo lectura. Cada vez que ocurre una acción relevante (ejecutar un algoritmo, crear o eliminar un nodo, agregar o quitar una conexión, guardar o cargar la configuración) se agrega una línea nueva.
+
+```java
+private void agregarLog(String mensaje) {
+    areaLog.append(mensaje + "\n");
+    areaLog.setCaretPosition(areaLog.getDocument().getLength());
+}
+```
+
+
 
 ## Conclusión
 
